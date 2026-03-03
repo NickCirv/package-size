@@ -1,162 +1,128 @@
 # package-size
 
-> Check your npm package size before publishing. See what's included, gzip size, and what to add to `.npmignore`. Zero dependencies.
+> Check the install size of npm packages **before** adding them — no install required.
 
-## Install
+Zero external dependencies. Pure Node.js. Works entirely via the npm registry API — downloads and inspects the tarball without ever touching your `node_modules`.
 
-```bash
-npx package-size
+```
+$ package-size lodash
+
+  lodash  v4.17.23
+  Lodash modular utilities.
+
+  Compressed (tgz)     307.5 KB
+  Unpacked size          2.2 MB  █████████████░░░░░░░░░░░░░░░░░
+  Files                    1051
+
+  ⚠ Many files (>1000) — may slow installs
+
+  Top files by size:
+   1. lodash.js                             532.5 KB
+   2. core.js                               113.2 KB
+   3. lodash.min.js                          71.6 KB
+   ...
 ```
 
-Or install globally:
+## Features
+
+- **Compressed + unpacked size** — see both the tgz download size and the installed footprint
+- **Top 10 largest files** — know exactly what's bloating the package
+- **Side-by-side comparison** — evaluate multiple packages at once
+- **Version size history** — track how a package has grown over its last 5 releases
+- **JSON output** — pipe into jq or your own tooling
+- **Automatic flags** — warns on packages over 5MB, 50MB, or 1000 files
+- **Zero dependencies** — no npm install, no node_modules, no cold-start
+
+## Install
 
 ```bash
 npm install -g package-size
 ```
 
-## Quick Start
-
-Run from any npm package directory:
+Or run without installing:
 
 ```bash
-pkgsize
+npx package-size lodash
 ```
 
-```
-  package-size v1.0.0 · my-awesome-package
-  ────────────────────────────────────────────────────────────
-
-  Included files (sorted by size)
-
-  ✓ index.js                          12.4 KB  ████████░░░░░░░
-  ✓ README.md                          3.1 KB  ██░░░░░░░░░░░░░
-  ✓ LICENSE                            1.1 KB  █░░░░░░░░░░░░░░
-  ✓ package.json                       0.8 KB  ░░░░░░░░░░░░░░░
-
-  ────────────────────────────────────────────────────────────
-
-  Files included:     4
-  Uncompressed:       17.4 KB
-  Gzip estimate:      5.9 KB
-  npm size limit:     50 MB
-
-  12 files excluded. Use --verbose to see them.
-```
-
-## Options
-
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--sort <size\|name>` | Sort included files by size or name | `size` |
-| `--format <table\|json>` | Output format | `table` |
-| `--limit <size>` | Fail exit code if package exceeds size (e.g. `100KB`, `2MB`) | — |
-| `--compare` | Compare with the published version on npm registry | — |
-| `--verbose` / `-v` | Show excluded files and the rule that matched them | — |
-| `--help` / `-h` | Show help | — |
-
-## Examples
+## Usage
 
 ```bash
-# Basic check
-pkgsize
+# Analyze a single package
+package-size lodash
+pkgsize lodash          # shorter alias
 
-# See what's being excluded and why
-pkgsize --verbose
+# Compare multiple packages side by side
+package-size react vue angular
 
-# Sort files by name instead of size
-pkgsize --sort name
+# Track size growth across the last 5 versions
+package-size axios --history
 
-# Fail in CI if package exceeds 500KB
-pkgsize --limit 500KB
+# Machine-readable JSON output
+package-size moment --json | jq '.[] | {name, unpackedSize}'
 
-# Compare local vs. published npm size
-pkgsize --compare
-
-# Output JSON (pipe-friendly)
-pkgsize --format json
-
-# Combine flags
-pkgsize --limit 1MB --verbose --compare
+# Help
+package-size --help
 ```
 
-## CI Integration
-
-Add to your GitHub Actions workflow to catch size regressions:
-
-```yaml
-- name: Check package size
-  run: npx package-size --limit 500KB
-```
-
-Returns exit code `1` if the limit is exceeded — fails the CI step automatically.
-
-## What Gets Excluded
-
-`package-size` respects the same rules as `npm publish`:
-
-**Always excluded (npm defaults):**
-- `.git/`, `node_modules/`, `package-lock.json`, `.npmrc`
-- `test/`, `tests/`, `__tests__/`, `*.test.js`, `*.spec.js`
-- `coverage/`, `.nyc_output/`, `.github/`, `.circleci/`
-- `.DS_Store`, `*.log`, and other noise files
-
-**Respects your config:**
-- `.npmignore` — explicit ignore rules
-- `package.json` `files` field — explicit include whitelist
-
-## Smart Suggestions
-
-If you accidentally include test files, docs, or build artifacts, `package-size` will tell you:
+## Comparison Example
 
 ```
-  ⚡ Suggested .npmignore additions:
+$ package-size react vue angular
 
-  + test/       (test directory detected: test/utils.test.js)
-  + docs/       (docs directory detected: docs/api.md)
-  + *.map       (source map detected: dist/index.js.map)
-
-  Add these to .npmignore to reduce your package size.
+  Package Comparison
+  ──────────────────────────────────────────────────────────────────────
+  Package                    Compressed       Unpacked   Files
+  ──────────────────────────────────────────────────────────────────────
+  ✓ react                       24.2 KB       188.0 KB      27 ██
+    angular                    611.3 KB         2.0 MB      10 █████████████████
+  ✗ vue                        629.4 KB         2.4 MB      37 ████████████████████
+  ──────────────────────────────────────────────────────────────────────
+  ✓ = smallest  ✗ = largest
 ```
 
 ## JSON Output
 
-Machine-readable output for scripting:
-
 ```bash
-pkgsize --format json | jq '.summary'
+$ package-size lodash --json
+[
+  {
+    "name": "lodash",
+    "version": "4.17.23",
+    "compressedSize": 314877,
+    "unpackedSize": 2266624,
+    "totalFiles": 1051,
+    "top10Files": [ ... ],
+    "flags": {
+      "large": false,
+      "veryLarge": false,
+      "manyFiles": true
+    }
+  }
+]
 ```
 
-```json
-{
-  "fileCount": 4,
-  "uncompressedSize": 17821,
-  "gzipSize": 6043,
-  "uncompressedFormatted": "17.4 KB",
-  "gzipFormatted": "5.9 KB",
-  "npmLimit": 52428800,
-  "exceedsLimit": false
-}
-```
+## Flags
 
-## Why?
+| Flag | Condition |
+|------|-----------|
+| `⚠ Large package` | Unpacked size > 5MB |
+| `⛔ Very large package` | Unpacked size > 50MB |
+| `⚠ Many files` | File count > 1000 (slows installs) |
 
-Publishing a bloated npm package is a tax on every developer who installs it. Common mistakes:
+## Requirements
 
-- Forgetting to add `test/` to `.npmignore`
-- Including `coverage/` reports or `.map` files
-- Shipping docs, examples, or benchmark directories
-- Leaving `node_modules` out of gitignore but not npmignore
+- Node.js 18+
+- No external dependencies
 
-`package-size` catches these before they hit the registry. Run it before every publish.
+## How It Works
 
-## Comparison with Alternatives
+1. Queries `https://registry.npmjs.org/{package}` for package metadata
+2. Downloads the `.tgz` tarball via HTTPS
+3. Pipes through `zlib.createGunzip()` to measure compressed vs uncompressed size
+4. Parses the POSIX ustar TAR headers to enumerate files and their sizes
+5. Reports everything — no disk writes, no `node_modules` touched
 
-| Tool | Zero deps | Offline | Shows excluded | CI mode | Suggestions |
-|------|-----------|---------|----------------|---------|-------------|
-| **package-size** | Yes | Yes | Yes (`--verbose`) | Yes (`--limit`) | Yes |
-| bundlephobia | No (web) | No | No | No | No |
-| npm pack (manual) | — | Yes | No | No | No |
+## License
 
----
-
-Built with Node.js · Zero dependencies · MIT License · [GitHub](https://github.com/NickCirv/package-size)
+MIT

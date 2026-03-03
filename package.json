@@ -1,7 +1,7 @@
 {
   "name": "package-size",
   "version": "1.0.0",
-  "description": "Check your npm package size before publishing. See what files are included, gzip size, and what to add to .npmignore. Zero dependencies.",
+  "description": "Check the install size of npm packages before adding them — no install required",
   "type": "module",
   "bin": {
     "package-size": "./index.js",
@@ -10,6 +10,7 @@
   "engines": {
     "node": ">=18"
   },
+  "license": "MIT",
   "keywords": [
     "developer-tools",
     "cli",
@@ -17,25 +18,19 @@
     "zero-dependencies",
     "npm",
     "package",
-    "publishing",
-    "bundle-size",
-    "npmignore",
-    "package-size",
-    "devtools"
+    "size",
+    "bundlesize"
   ],
-  "license": "MIT",
-  "author": "NickCirv",
   "files": [
     "index.js",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NickCirv/package-size.git"
+    "url": "https://github.com/NickCirv/package-size.git"
   },
+  "homepage": "https://github.com/NickCirv/package-size#readme",
   "bugs": {
     "url": "https://github.com/NickCirv/package-size/issues"
-  },
-  "homepage": "https://github.com/NickCirv/package-size#readme"
+  }
 }
