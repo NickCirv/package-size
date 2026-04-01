@@ -1,3 +1,5 @@
+![Banner](banner.svg)
+
 # package-size
 
 > Check the install size of npm packages **before** adding them — no install required.
